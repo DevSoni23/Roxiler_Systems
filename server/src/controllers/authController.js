@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createUser, findUserByEmail } = require('../models/userModel');
+const { createUser, findUserByEmail,updatePassword } = require('../models/userModel');
 
 const signup = async (req, res) => {
   try {
@@ -14,7 +14,6 @@ const signup = async (req, res) => {
 
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(password, 10);
-
     // Normal signup always creates a 'normal' role user
     const newUser = await createUser({
       name,
@@ -63,4 +62,29 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { signup, login };
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    // Fetch current user to verify old password
+    const result = await require('../config/db').query('SELECT password FROM users WHERE id = $1', [userId]);
+    const user = result.rows[0];
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Old password is incorrect' });
+    }
+
+    const hashedNew = await bcrypt.hash(newPassword, 10);
+    await updatePassword(userId, hashedNew);
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+module.exports = { signup, login, changePassword };
+
+
