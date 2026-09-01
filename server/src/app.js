@@ -1,25 +1,24 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const pool = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const storeRoutes = require('./routes/storeRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 
-// Middleware — runs on every request before it reaches your routes
 app.use(cors({
-  origin: 'http://localhost:5173',// allows frontend to call this backend
+  origin: process.env.CLIENT_URL || true,
   credentials: true,
-}));         
-app.use(express.json());   // lets Express understand JSON request bodies
+}));
+app.use(express.json());
+
 const { authenticate } = require('./middleware/authMiddleware');
 
 app.get('/api/test-protected', authenticate, (req, res) => {
   res.json({ message: 'You are authenticated!', user: req.user });
 });
-// A simple test route
+
 app.get('/', (req, res) => {
   res.json({ message: 'Server is alive!' });
 });
@@ -28,7 +27,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/stores', storeRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/admin', adminRoutes);
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
