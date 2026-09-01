@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../components/AuthLayout';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // stops the browser's default full-page-reload form behavior
+    e.preventDefault();
     setError('');
 
     try {
@@ -19,21 +20,24 @@ function Login() {
       const { user, token } = response.data;
       loginUser(user, token);
 
-      // Redirect based on role
-      if (user.role === 'admin') navigate('/admin');
-      else if (user.role === 'store_owner') navigate('/owner');
-      else navigate('/stores');
+      if (user.role === "admin")
+  navigate("/admin");
+else if (user.role === "store_owner")
+  navigate("/owner");
+else
+  navigate("/stores");
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
+    <AuthLayout title="Welcome back">
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email</label>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
+            Email
+          </label>
           <input
             type="email"
             value={email}
@@ -41,8 +45,10 @@ function Login() {
             required
           />
         </div>
-        <div>
-          <label>Password</label>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
+            Password
+          </label>
           <input
             type="password"
             value={password}
@@ -50,10 +56,14 @@ function Login() {
             required
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit">Login</button>
+        {error && (
+          <p style={{ color: 'var(--danger)', fontSize: '13px', marginBottom: '16px' }}>
+            {error}
+          </p>
+        )}
+        <button type="submit" style={{ width: '100%' }}>Log In</button>
       </form>
-    </div>
+    </AuthLayout>
   );
 }
 

@@ -1,5 +1,21 @@
-import api from './axios';
+import api from "./axios";
 
-export const addUser = (data) => api.post('/admin/users', data);
-export const getUsers = (params) => api.get('/admin/users', { params });
-export const getDashboardStats = () => api.get('/admin/dashboard');
+export const getDashboardStats = () => {
+  return api.get("/admin/dashboard");
+};
+
+export const getUsers = (params = {}) => {
+  return api.get("/admin/users", { params });
+};
+
+export const addUser = (data) => {
+  return api.post("/admin/users", data);
+};
+
+export const getStoreOwners = () => {
+  return api.get("/admin/store-owners");
+};
+
+export const addStore = (data) => {
+  return api.post("/admin/stores", data);
+};

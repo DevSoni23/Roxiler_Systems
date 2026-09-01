@@ -14,13 +14,13 @@ const signup = async (req, res) => {
 
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Normal signup always creates a 'normal' role user
+    // Normal signup always creates a 'user' role user
     const newUser = await createUser({
       name,
       email,
       password: hashedPassword,
       address,
-      role: 'normal',
+      role: 'user',
     });
 
     res.status(201).json({ message: 'User created successfully', user: newUser });
