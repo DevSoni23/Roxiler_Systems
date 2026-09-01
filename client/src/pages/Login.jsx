@@ -106,6 +106,8 @@ function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
             />
           </div>
 

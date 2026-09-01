@@ -5,9 +5,10 @@ const { createUser, findUserByEmail, updatePassword, updateUserProfile } = requi
 const signup = async (req, res) => {
   try {
     const { name, email, password, address } = req.body;
+    const normalizedEmail = (email || '').toLowerCase().trim();
 
     // Check if user already exists
-    const existing = await findUserByEmail(email);
+    const existing = await findUserByEmail(normalizedEmail);
     if (existing) {
       return res.status(400).json({ message: 'Email already registered' });
     }
@@ -17,7 +18,7 @@ const signup = async (req, res) => {
     // Normal signup always creates a 'user' role user
     const newUser = await createUser({
       name,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       address,
       role: 'user',
@@ -32,9 +33,10 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').toLowerCase().trim();
 
     // Find the user
-    const user = await findUserByEmail(email);
+    const user = await findUserByEmail(normalizedEmail);
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
