@@ -50,8 +50,12 @@ const getAllUsers = async ({
   order
 }) => {
   let query = `
-    SELECT id, name, email, address, role, created_at
-    FROM users
+    SELECT u.id, u.name, u.email, u.address, u.role, u.created_at,
+           COALESCE(AVG(r.rating), 0)::numeric(2,1) AS store_rating,
+           s.name AS store_name
+    FROM users u
+    LEFT JOIN stores s ON s.owner_id = u.id
+    LEFT JOIN ratings r ON r.store_id = s.id
     WHERE 1=1
   `;
 
@@ -59,35 +63,36 @@ const getAllUsers = async ({
 
   if (name) {
     params.push(`%${name}%`);
-    query += ` AND name ILIKE $${params.length}`;
+    query += ` AND u.name ILIKE $${params.length}`;
   }
 
   if (email) {
     params.push(`%${email}%`);
-    query += ` AND email ILIKE $${params.length}`;
+    query += ` AND u.email ILIKE $${params.length}`;
   }
 
   if (address) {
     params.push(`%${address}%`);
-    query += ` AND address ILIKE $${params.length}`;
+    query += ` AND u.address ILIKE $${params.length}`;
   }
 
   if (role) {
     params.push(role);
-    query += ` AND role = $${params.length}`;
+    query += ` AND u.role = $${params.length}`;
   }
 
-  // Prevent SQL injection by allowing only known columns
-  const allowedSortFields = [
-    'name',
-    'email',
-    'role',
-    'created_at'
-  ];
+  query += ` GROUP BY u.id, s.id`;
 
-  const sortField = allowedSortFields.includes(sortBy)
-    ? sortBy
-    : 'name';
+  const allowedSortFields = {
+    name: 'u.name',
+    email: 'u.email',
+    address: 'u.address',
+    role: 'u.role',
+    rating: 'store_rating',
+    created_at: 'u.created_at',
+  };
+
+  const sortField = allowedSortFields[sortBy] || 'u.name';
 
   const sortOrder =
     String(order).toLowerCase() === 'desc'
@@ -100,6 +105,7 @@ const getAllUsers = async ({
 
   return result.rows;
 };
+
 
 // Dashboard statistics
 const getDashboardStats = async () => {
@@ -138,6 +144,26 @@ const updatePassword = async (userId, hashedPassword) => {
   );
 };
 
+// Update user profile (name, address)
+const updateUserProfile = async (userId, { name, address }) => {
+  const result = await pool.query(
+    `UPDATE users SET name = $1, address = $2 WHERE id = $3
+     RETURNING id, name, email, address, role`,
+    [name, address, userId]
+  );
+  return result.rows[0];
+};
+
+// Delete a user and their ratings
+const deleteUserById = async (userId) => {
+  await pool.query(`DELETE FROM ratings WHERE user_id = $1`, [userId]);
+  const result = await pool.query(
+    `DELETE FROM users WHERE id = $1 RETURNING id`,
+    [userId]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   createUser,
   findUserByEmail,
@@ -146,4 +172,6 @@ module.exports = {
   getDashboardStats,
   updatePassword,
   getStoreOwners,
+  updateUserProfile,
+  deleteUserById,
 };

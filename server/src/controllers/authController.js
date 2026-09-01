@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createUser, findUserByEmail,updatePassword } = require('../models/userModel');
+const { createUser, findUserByEmail, updatePassword, updateUserProfile } = require('../models/userModel');
 
 const signup = async (req, res) => {
   try {
@@ -85,6 +85,23 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, changePassword };
+// PUT /auth/profile — any logged-in user updates their name & address
+const updateProfile = async (req, res) => {
+  try {
+    const { name, address } = req.body;
+    if (!name || name.trim().length < 20) {
+      return res.status(400).json({ message: 'Name must be at least 20 characters' });
+    }
+    if (address && address.length > 400) {
+      return res.status(400).json({ message: 'Address must be at most 400 characters' });
+    }
+    const updated = await updateUserProfile(req.user.id, { name: name.trim(), address: address || '' });
+    res.json({ message: 'Profile updated successfully', user: updated });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+module.exports = { signup, login, changePassword, updateProfile };
 
 

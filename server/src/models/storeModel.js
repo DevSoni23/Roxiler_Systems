@@ -72,4 +72,56 @@ const getStoreRatingsDetail = async (storeId) => {
   };
 };
 
-module.exports = { createStore, getAllStores, getStoreByOwnerId, getStoreRatingsDetail };
+// Update a store by owner — only updates rows where owner_id matches (security)
+const updateStoreByOwner = async (ownerId, { name, email, address }) => {
+  const result = await pool.query(
+    `UPDATE stores SET name = $1, email = $2, address = $3
+     WHERE owner_id = $4
+     RETURNING id, name, email, address, owner_id`,
+    [name, email, address, ownerId]
+  );
+  return result.rows[0];
+};
+
+// Get all stores for admin (with average rating and sorting)
+const getAllStoresAdmin = async ({ name, address, sortBy, order } = {}) => {
+  let query = `
+    SELECT s.id, s.name, s.email, s.address,
+           COALESCE(AVG(r.rating), 0)::numeric(2,1) AS average_rating,
+           COUNT(r.id) AS total_ratings
+    FROM stores s
+    LEFT JOIN ratings r ON r.store_id = s.id
+    WHERE 1=1
+  `;
+  const params = [];
+  if (name)    { params.push(`%${name}%`);    query += ` AND s.name ILIKE $${params.length}`; }
+  if (address) { params.push(`%${address}%`); query += ` AND s.address ILIKE $${params.length}`; }
+  query += ` GROUP BY s.id`;
+
+  const allowedSortFields = {
+    name: 's.name',
+    email: 's.email',
+    address: 's.address',
+    rating: 'average_rating',
+  };
+
+  const sortCol = allowedSortFields[sortBy] || 's.name';
+  const sortDir = String(order).toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+  query += ` ORDER BY ${sortCol} ${sortDir}`;
+
+  const result = await pool.query(query, params);
+  return result.rows;
+};
+
+
+// Delete a store and all its ratings
+const deleteStoreById = async (storeId) => {
+  await pool.query(`DELETE FROM ratings WHERE store_id = $1`, [storeId]);
+  const result = await pool.query(
+    `DELETE FROM stores WHERE id = $1 RETURNING id`,
+    [storeId]
+  );
+  return result.rows[0];
+};
+
+module.exports = { createStore, getAllStores, getStoreByOwnerId, getStoreRatingsDetail, updateStoreByOwner, getAllStoresAdmin, deleteStoreById };

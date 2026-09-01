@@ -11,3 +11,11 @@ export const addStore = (data) => {
 export const getOwnerDashboard = () => {
   return api.get("/stores/owner/dashboard");
 };
+
+export const updateOwnerStore = (data) => {
+  return api.put("/stores/owner/profile", data);
+};
+
+export const updateOwnerProfile = (data) => {
+  return api.put("/stores/owner/me", data);
+};

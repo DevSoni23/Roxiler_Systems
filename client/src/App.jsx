@@ -1,8 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Login from "./pages/Login";
-import Admin from "./pages/Admin";
-import Owner from "./pages/Owner";
+import Login  from "./pages/Login";
+import Signup from "./pages/Signup";
+import Admin  from "./pages/Admin";
+import Owner  from "./pages/Owner";
 import Stores from "./pages/Stores";
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -12,7 +13,8 @@ function App() {
     <Routes>
 
       {/* Public */}
-      <Route path="/login" element={<Login />} />
+      <Route path="/login"  element={<Login />}  />
+      <Route path="/signup" element={<Signup />} />
 
       {/* Admin only */}
       <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
@@ -30,10 +32,8 @@ function App() {
       </Route>
 
       {/* Default */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-
-      {/* Unknown route */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="/"  element={<Navigate to="/login" replace />} />
+      <Route path="*"  element={<Navigate to="/login" replace />} />
 
     </Routes>
   );
