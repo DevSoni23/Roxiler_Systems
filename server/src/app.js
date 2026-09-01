@@ -28,11 +28,9 @@ app.use('/api/stores', storeRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/admin', adminRoutes);
 
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
 
 module.exports = app;
