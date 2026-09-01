@@ -77,8 +77,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🔑 Demo Credentials (Password: `Devsoni@123`)
+## 🔑 Credentials
 
-- **Admin**: `admin@roxiler.com`
-- **Store Owner**: `vikram.patel@demo.com`
-- **Normal User**: `priya.sharma@demo.com`
+- **Admin**: `admin@roxiler.com` | Password: `Admin@123`
+- **Store Owner**: `vikram.patel@demo.com` | Password: `Devsoni@123`
+- **Normal User**: `priya.sharma@demo.com` | Password: `Devsoni@123`
