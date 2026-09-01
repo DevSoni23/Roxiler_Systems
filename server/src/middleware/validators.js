@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-// Password pattern: 8-16 characters, at least one uppercase letter and one special character
+// Password rule: 8-16 chars, >=1 uppercase, >=1 special char
 const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,16}$/;
 
 const signupSchema = Joi.object({
@@ -77,7 +77,7 @@ const profileUpdateSchema = Joi.object({
   }),
 });
 
-// Generic middleware factory
+// Middleware helper for request body validation
 const validate = (schema) => (req, res, next) => {
   const { error } = schema.validate(req.body);
   if (error) {

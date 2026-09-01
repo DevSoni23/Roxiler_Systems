@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 
-// Create a new user
+// Register normal user
 const createUser = async ({ name, email, password, address, role }) => {
   const result = await pool.query(
     `INSERT INTO users (name, email, password, address, role)
@@ -12,7 +12,7 @@ const createUser = async ({ name, email, password, address, role }) => {
   return result.rows[0];
 };
 
-// Find a user by email
+// Lookup user by email
 const findUserByEmail = async (email) => {
   const result = await pool.query(
     `SELECT * FROM users WHERE email = $1`,
@@ -22,7 +22,7 @@ const findUserByEmail = async (email) => {
   return result.rows[0];
 };
 
-// Admin: create a user with any role
+// Create user via admin dashboard
 const createUserByAdmin = async ({
   name,
   email,
@@ -40,7 +40,7 @@ const createUserByAdmin = async ({
   return result.rows[0];
 };
 
-// Get all users with optional filters and sorting
+// Fetch users with filters, sorting, and store owner rating calculation
 const getAllUsers = async ({
   name,
   email,
@@ -106,8 +106,7 @@ const getAllUsers = async ({
   return result.rows;
 };
 
-
-// Dashboard statistics
+// Admin overview metrics
 const getDashboardStats = async () => {
   const usersCount = await pool.query(
     `SELECT COUNT(*) FROM users`
@@ -128,7 +127,7 @@ const getDashboardStats = async () => {
   };
 };
 
-// Get all users with role store_owner (for store creation dropdown)
+// Fetch store owners for store creation dropdown
 const getStoreOwners = async () => {
   const result = await pool.query(
     `SELECT id, name, email FROM users WHERE role = 'store_owner' ORDER BY name ASC`
@@ -136,7 +135,7 @@ const getStoreOwners = async () => {
   return result.rows;
 };
 
-// Update password
+// Update user password hash
 const updatePassword = async (userId, hashedPassword) => {
   await pool.query(
     `UPDATE users SET password = $1 WHERE id = $2`,
@@ -144,7 +143,7 @@ const updatePassword = async (userId, hashedPassword) => {
   );
 };
 
-// Update user profile (name, address)
+// Update name and address details
 const updateUserProfile = async (userId, { name, address }) => {
   const result = await pool.query(
     `UPDATE users SET name = $1, address = $2 WHERE id = $3
@@ -154,7 +153,7 @@ const updateUserProfile = async (userId, { name, address }) => {
   return result.rows[0];
 };
 
-// Delete a user and their ratings
+// Remove user and cleanup ratings
 const deleteUserById = async (userId) => {
   await pool.query(`DELETE FROM ratings WHERE user_id = $1`, [userId]);
   const result = await pool.query(

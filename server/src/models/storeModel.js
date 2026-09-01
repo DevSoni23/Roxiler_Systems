@@ -1,18 +1,17 @@
 const pool = require('../config/db');
 
-// Create a new store (admin only)
+// Create store entry
 const createStore = async ({ name, email, address, owner_id }) => {
-    const result = await pool.query(
-        `INSERT INTO stores (name, email, address, owner_id)
+  const result = await pool.query(
+    `INSERT INTO stores (name, email, address, owner_id)
      VALUES ($1, $2, $3, $4)
      RETURNING id, name, email, address, owner_id, created_at`,
-        [name, email, address, owner_id]
-    );
-    return result.rows[0];
+    [name, email, address, owner_id]
+  );
+  return result.rows[0];
 };
 
-// Get all stores, with their AVERAGE rating computed via JOIN
-// Get all stores, with average rating AND the current user's own rating, with optional search
+// Fetch stores with aggregated rating & current user's rating
 const getAllStores = async ({ userId, name, address }) => {
   let query = `
     SELECT 
@@ -41,7 +40,7 @@ const getAllStores = async ({ userId, name, address }) => {
   return result.rows;
 };
 
-// Get the store owned by a specific user
+// Fetch store owned by specific user ID
 const getStoreByOwnerId = async (ownerId) => {
   const result = await pool.query(
     `SELECT id, name, email, address FROM stores WHERE owner_id = $1`,
@@ -50,7 +49,7 @@ const getStoreByOwnerId = async (ownerId) => {
   return result.rows[0];
 };
 
-// Get all users who rated a specific store, plus the store's average rating
+// Fetch all ratings for a store along with average score
 const getStoreRatingsDetail = async (storeId) => {
   const ratings = await pool.query(
     `SELECT u.id, u.name, u.email, r.rating, r.updated_at
@@ -72,7 +71,7 @@ const getStoreRatingsDetail = async (storeId) => {
   };
 };
 
-// Update a store by owner — only updates rows where owner_id matches (security)
+// Update store info (restricted by owner_id)
 const updateStoreByOwner = async (ownerId, { name, email, address }) => {
   const result = await pool.query(
     `UPDATE stores SET name = $1, email = $2, address = $3
@@ -83,7 +82,7 @@ const updateStoreByOwner = async (ownerId, { name, email, address }) => {
   return result.rows[0];
 };
 
-// Get all stores for admin (with average rating and sorting)
+// Admin view: list all stores with sorting & filtering
 const getAllStoresAdmin = async ({ name, address, sortBy, order } = {}) => {
   let query = `
     SELECT s.id, s.name, s.email, s.address,
@@ -113,8 +112,7 @@ const getAllStoresAdmin = async ({ name, address, sortBy, order } = {}) => {
   return result.rows;
 };
 
-
-// Delete a store and all its ratings
+// Delete store + ratings cascade
 const deleteStoreById = async (storeId) => {
   await pool.query(`DELETE FROM ratings WHERE store_id = $1`, [storeId]);
   const result = await pool.query(
